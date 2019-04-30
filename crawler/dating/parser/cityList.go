@@ -13,9 +13,8 @@ func ParseCityList(contents []byte) engine.ParseResult {
 
 	result := engine.ParseResult{}
 
-	// TODO:
 	// 测试时控制一下city数量
-	limit := 1
+	// limit := 1
 
 	for _, m := range matches {
 		result.Items = append(
@@ -25,10 +24,10 @@ func ParseCityList(contents []byte) engine.ParseResult {
 				Url:        string(m[1]),
 				ParserFunc: ParseCity,
 			})
-		limit--
-		if limit == 0 {
-			break
-		}
+		// limit--
+		//if limit == 0 {
+		//	break
+		//}
 	}
 
 	return result

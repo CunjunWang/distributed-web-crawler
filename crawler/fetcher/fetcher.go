@@ -10,14 +10,21 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 )
 
 const byteLength = 1024
 const userAgentKey = "User-Agent"
 const userAgentValue = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/71.0.3578.87 Safari/537.21"
 
+var rateLimiter = time.Tick(10 * time.Millisecond)
+
 // fetch content from url
 func Fetch(url string) ([]byte, error) {
+
+	// 限流
+	<-rateLimiter
+
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err

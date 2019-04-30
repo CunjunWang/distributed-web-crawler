@@ -3,12 +3,18 @@ package main
 import (
 	"distributed-web-crawler/crawler/dating/parser"
 	"distributed-web-crawler/crawler/engine"
+	"distributed-web-crawler/crawler/scheduler"
 )
 
 const cityUrl = "http://www.zhenai.com/zhenghun"
 
 func main() {
-	engine.Run(engine.Request{
+	e := engine.ConcurrentEngine{
+		Scheduler:   &scheduler.QueuedScheduler{},
+		WorkerCount: 100,
+	}
+
+	e.Run(engine.Request{
 		Url:        cityUrl,
 		ParserFunc: parser.ParseCityList,
 	})
