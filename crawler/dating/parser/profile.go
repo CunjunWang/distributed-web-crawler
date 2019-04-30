@@ -9,15 +9,23 @@ import (
 	"strconv"
 )
 
-const jsonRe = `<script>window.__INITIAL_STATE__=({.+});`
+var jsonRe = regexp.MustCompile(`<script>window.__INITIAL_STATE__=({.+});`)
+
+var expandRe = regexp.MustCompile(
+	`<a target="_blank" href="(http://www.zhenai.com/zhenghun/[^"]+)">`)
 
 // parse user profile
 func ParseProfile(content []byte) engine.ParseResult {
-	re := regexp.MustCompile(jsonRe)
-	matches := re.FindAllSubmatch(content, -1)
 
-	result := engine.ParseResult{}
+	matches := jsonRe.FindAllSubmatch(content, -1)
+
+	// log.Println("matches: ", len(matches))
+
+	// new profile object
+	profile := model.Profile{}
+
 	for _, m := range matches {
+
 		objectString := string(m[1])
 		var p fastjson.Parser
 		v, err := p.Parse(objectString)
@@ -29,8 +37,7 @@ func ParseProfile(content []byte) engine.ParseResult {
 		userInfoObject := v.GetObject("objectInfo")
 
 		if userInfoObject != nil {
-			// new profile object
-			profile := model.Profile{}
+
 			// name
 			if userInfoObject.Get("nickname") != nil {
 				profile.Name = userInfoObject.Get("nickname").String()
@@ -100,11 +107,20 @@ func ParseProfile(content []byte) engine.ParseResult {
 				// car
 				profile.Car = detailInfo[6].String()
 			}
-
-			result.Items = append(result.Items, profile)
-			result.Requests = append(
-				result.Requests, engine.Request{})
 		}
 	}
+
+	result := engine.ParseResult{}
+	result.Items = append(result.Items, profile)
+
+	expandMatches := expandRe.FindAllSubmatch(content, -1)
+	for _, m := range expandMatches {
+		result.Requests = append(result.Requests,
+			engine.Request{
+				Url:        string(m[1]),
+				ParserFunc: ParseCity,
+			})
+	}
+
 	return result
 }
