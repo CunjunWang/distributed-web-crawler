@@ -14,8 +14,10 @@ var jsonRe = regexp.MustCompile(`<script>window.__INITIAL_STATE__=({.+});`)
 var expandRe = regexp.MustCompile(
 	`<a target="_blank" href="(http://www.zhenai.com/zhenghun/[^"]+)">`)
 
+var idUrlRe = regexp.MustCompile(`http://album.zhenai.com/u/([\d]+)`)
+
 // parse user profile
-func ParseProfile(content []byte) engine.ParseResult {
+func ParseProfile(content []byte, url string, name string) engine.ParseResult {
 
 	matches := jsonRe.FindAllSubmatch(content, -1)
 
@@ -110,8 +112,16 @@ func ParseProfile(content []byte) engine.ParseResult {
 		}
 	}
 
+	id := extractString([]byte(url), idUrlRe)
+
 	result := engine.ParseResult{}
-	result.Items = append(result.Items, profile)
+	result.Items = append(result.Items,
+		engine.Item{
+			Url:     url,
+			Type:    "zhenai",
+			Id:      id,
+			Payload: profile,
+		})
 
 	expandMatches := expandRe.FindAllSubmatch(content, -1)
 	for _, m := range expandMatches {
@@ -123,4 +133,20 @@ func ParseProfile(content []byte) engine.ParseResult {
 	}
 
 	return result
+}
+
+func extractString(contents []byte, re *regexp.Regexp) string {
+	match := re.FindSubmatch(contents)
+
+	if len(match) >= 2 {
+		return string(match[1])
+	} else {
+		return ""
+	}
+}
+
+func ProfileParser(name string) engine.ParserFunc {
+	return func(c []byte, url string) engine.ParseResult {
+		return ParseProfile(c, url, name)
+	}
 }
