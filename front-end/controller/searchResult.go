@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"distributed-web-crawler/crawler/engine"
 	"distributed-web-crawler/crawler/models"
 	"distributed-web-crawler/front-end/model"
 	"distributed-web-crawler/front-end/view"
@@ -13,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 )
+
+const pageSize = 10
 
 type SearchResultHandler struct {
 	view   view.SearchResultView
@@ -58,6 +61,7 @@ func (h SearchResultHandler) ServeHTTP(
 
 func (h SearchResultHandler) getSearchResult(
 	q string, from int) (model.SearchResult, error) {
+
 	var result model.SearchResult
 	result.Query = q
 
@@ -107,9 +111,9 @@ func (h SearchResultHandler) getSearchResult(
 
 		hitsArray, _ := hitsObj.Get("hits").Array()
 
-		for _, item := range hitsArray {
+		for _, hitItem := range hitsArray {
 
-			sourceObj := item.GetObject("_source")
+			sourceObj := hitItem.GetObject("_source")
 			payload := sourceObj.Get("Payload")
 
 			profile := models.Profile{}
@@ -120,12 +124,32 @@ func (h SearchResultHandler) getSearchResult(
 			profile.Income = payload.Get("Income").String()
 			profile.Height = payload.GetInt("Height")
 			profile.Gender = payload.Get("Gender").String()
-			result.Items = append(result.Items, profile)
+
+			item := engine.Item{
+				Url:     sourceObj.Get("Url").String(),
+				Type:    sourceObj.Get("Type").String(),
+				Id:      sourceObj.Get("Id").String(),
+				Payload: profile,
+			}
+
+			result.Items = append(result.Items, item)
 		}
 
+		if result.Start == 0 {
+			result.PrevFrom = -1
+		} else {
+			result.PrevFrom =
+				(result.Start - 1) /
+					pageSize * pageSize
+		}
+		result.NextFrom =
+			result.Start + len(result.Items)
+
+		fmt.Printf("result: %v+", result)
+
+		return result, nil
+	} else {
+		return model.SearchResult{}, err
 	}
 
-	fmt.Printf("result: %v+", result)
-
-	return result, nil
 }
