@@ -2,7 +2,7 @@ package parser
 
 import (
 	"distributed-web-crawler/crawler/engine"
-	"distributed-web-crawler/crawler/model"
+	"distributed-web-crawler/crawler/models"
 	"github.com/valyala/fastjson"
 	"log"
 	"regexp"
@@ -24,7 +24,7 @@ func ParseProfile(content []byte, url string, name string) engine.ParseResult {
 	// log.Println("matches: ", len(matches))
 
 	// new profile object
-	profile := model.Profile{}
+	profile := models.Profile{}
 
 	for _, m := range matches {
 
@@ -35,22 +35,24 @@ func ParseProfile(content []byte, url string, name string) engine.ParseResult {
 			log.Fatal(err)
 		}
 
+		profile.Name = name
+
 		// 用户信息对象
 		userInfoObject := v.GetObject("objectInfo")
-
 		if userInfoObject != nil {
-
 			// name
-			if userInfoObject.Get("nickname") != nil {
-				profile.Name = userInfoObject.Get("nickname").String()
-			}
+			//if userInfoObject.Get("nickname") != nil {
+			//	s := userInfoObject.Get("nickname").String()
+			//	profile.Name = s[1 : len(s) - 1]
+			//}
 			// nickname
-			if userInfoObject.Get("nickname") != nil {
-				profile.Nickname = userInfoObject.Get("nickname").String()
-			}
+			//if userInfoObject.Get("nickname") != nil {
+			//	profile.Nickname = userInfoObject.Get("nickname").String()
+			//}
 			// gender
 			if userInfoObject.Get("genderString") != nil {
-				profile.Gender = userInfoObject.Get("genderString").String()
+				s := userInfoObject.Get("genderString").String()
+				profile.Gender = s[1 : len(s)-1]
 			}
 			// age
 			if userInfoObject.Get("age") != nil {
@@ -58,20 +60,23 @@ func ParseProfile(content []byte, url string, name string) engine.ParseResult {
 			}
 			// income
 			if userInfoObject.Get("salaryString") != nil {
-				profile.Income = userInfoObject.Get("salaryString").String()
+				s := userInfoObject.Get("salaryString").String()
+				profile.Income = s[1 : len(s)-1]
 			}
 			// marriage
 			if userInfoObject.Get("marriageString") != nil {
-				profile.Marriage = userInfoObject.Get("marriageString").String()
+				s := userInfoObject.Get("marriageString").String()
+				profile.Marriage = s[1 : len(s)-1]
 			}
 			// education
 			if userInfoObject.Get("educationString") != nil {
-				profile.Education = userInfoObject.Get("educationString").String()
+				s := userInfoObject.Get("educationString").String()
+				profile.Education = s[1 : len(s)-1]
 			}
 			// city
-			if userInfoObject.Get("workCityString") != nil {
-				profile.City = userInfoObject.Get("workCityString").String()
-			}
+			//if userInfoObject.Get("workCityString") != nil {
+			//	profile.City = userInfoObject.Get("workCityString").String()
+			//}
 			// height
 			if userInfoObject.Get("heightString") != nil {
 				heightString := userInfoObject.Get("heightString").String()
@@ -81,34 +86,34 @@ func ParseProfile(content []byte, url string, name string) engine.ParseResult {
 			}
 
 			// 基础信息列表
-			basicInfo, _ := userInfoObject.Get("basicInfo").Array()
+			// basicInfo, _ := userInfoObject.Get("basicInfo").Array()
 			// 详细信息列表
-			detailInfo, _ := userInfoObject.Get("detailInfo").Array()
+			//detailInfo, _ := userInfoObject.Get("detailInfo").Array()
+			//
+			//if basicInfo != nil && len(basicInfo) >= 8 {
+			//	// weight
+			//	weightString := basicInfo[4].String()
+			//	weightWithoutUnit := weightString[1:3]
+			//	weight, _ := strconv.Atoi(weightWithoutUnit)
+			//	profile.Weight = weight
+			//	// occupation
+			//	profile.Occupation = basicInfo[len(basicInfo)-2].String()
+			//	// constellation
+			//	profile.Constellation = basicInfo[2].String()
+			//}
 
-			if basicInfo != nil && len(basicInfo) >= 8 {
-				// weight
-				weightString := basicInfo[4].String()
-				weightWithoutUnit := weightString[1:3]
-				weight, _ := strconv.Atoi(weightWithoutUnit)
-				profile.Weight = weight
-				// occupation
-				profile.Occupation = basicInfo[len(basicInfo)-2].String()
-				// constellation
-				profile.Constellation = basicInfo[2].String()
-			}
-
-			if detailInfo != nil && len(detailInfo) >= 8 {
-				// nationality
-				profile.Nationality = detailInfo[0].String()
-				// smoke
-				profile.Smoke = detailInfo[3].String()
-				// drink
-				profile.Drink = detailInfo[4].String()
-				// house
-				profile.House = detailInfo[5].String()
-				// car
-				profile.Car = detailInfo[6].String()
-			}
+			//if detailInfo != nil && len(detailInfo) >= 8 {
+			//	// nationality
+			//	profile.Nationality = detailInfo[0].String()
+			//	// smoke
+			//	profile.Smoke = detailInfo[3].String()
+			//	// drink
+			//	profile.Drink = detailInfo[4].String()
+			//	// house
+			//	profile.House = detailInfo[5].String()
+			//	// car
+			//	profile.Car = detailInfo[6].String()
+			//}
 		}
 	}
 
