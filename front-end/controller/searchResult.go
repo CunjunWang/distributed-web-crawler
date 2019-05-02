@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -40,6 +41,7 @@ func (h SearchResultHandler) ServeHTTP(
 	writer http.ResponseWriter, req *http.Request) {
 
 	q := strings.TrimSpace(req.FormValue("q"))
+
 	from, err := strconv.Atoi(req.FormValue("from"))
 
 	if err != nil {
@@ -67,7 +69,7 @@ func (h SearchResultHandler) getSearchResult(
 
 	var s string
 	if q != "" {
-		s = fmt.Sprintf("http://localhost:9200/dating_profile/_search?q=%s&from=%d", q, from)
+		s = fmt.Sprintf("http://localhost:9200/dating_profile/_search?q=%s&from=%d", rewriteQueryString(q), from)
 	} else {
 		s = fmt.Sprintf("http://localhost:9200/dating_profile/_search?from=%d", from)
 	}
@@ -125,8 +127,9 @@ func (h SearchResultHandler) getSearchResult(
 			profile.Height = payload.GetInt("Height")
 			profile.Gender = payload.Get("Gender").String()
 
+			url := sourceObj.Get("Url").String()
 			item := engine.Item{
-				Url:     sourceObj.Get("Url").String(),
+				Url:     string(url),
 				Type:    sourceObj.Get("Type").String(),
 				Id:      sourceObj.Get("Id").String(),
 				Payload: profile,
@@ -152,4 +155,9 @@ func (h SearchResultHandler) getSearchResult(
 		return model.SearchResult{}, err
 	}
 
+}
+
+func rewriteQueryString(q string) string {
+	re := regexp.MustCompile(`([A-Z][a-z]*):`)
+	return re.ReplaceAllString(q, "Payload.$1:")
 }
