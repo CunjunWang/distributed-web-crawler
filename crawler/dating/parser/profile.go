@@ -17,7 +17,7 @@ var expandRe = regexp.MustCompile(
 var idUrlRe = regexp.MustCompile(`http://album.zhenai.com/u/([\d]+)`)
 
 // parse user profile
-func ParseProfile(content []byte, url string, name string) engine.ParseResult {
+func parseProfile(content []byte, url string, name string) engine.ParseResult {
 
 	matches := jsonRe.FindAllSubmatch(content, -1)
 
@@ -132,8 +132,8 @@ func ParseProfile(content []byte, url string, name string) engine.ParseResult {
 	for _, m := range expandMatches {
 		result.Requests = append(result.Requests,
 			engine.Request{
-				Url:        string(m[1]),
-				ParserFunc: ParseCity,
+				Url:    string(m[1]),
+				Parser: engine.NewFuncParser(ParseCity, "ParseCity"),
 			})
 	}
 
@@ -150,8 +150,20 @@ func extractString(contents []byte, re *regexp.Regexp) string {
 	}
 }
 
-func ProfileParser(name string) engine.ParserFunc {
-	return func(c []byte, url string) engine.ParseResult {
-		return ParseProfile(c, url, name)
+type ProfileParser struct {
+	userName string
+}
+
+func (p *ProfileParser) Parse(contents []byte, url string) engine.ParseResult {
+	return parseProfile(contents, url, p.userName)
+}
+
+func (p *ProfileParser) Serialize() (name string, args interface{}) {
+	return "ProfileParser", p.userName
+}
+
+func NewProfileParser(name string) *ProfileParser {
+	return &ProfileParser{
+		userName: name,
 	}
 }
