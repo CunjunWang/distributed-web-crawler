@@ -1,5 +1,9 @@
 # distributed-web-crawler
 course project for Introduction of Golang on imooc.
+## Tech stack
+1. Golang 1.11
+2. Elasticsearch 6.5.4
+3. Docker
 
 ## 单机版 / Single node version
 /crawler
@@ -37,3 +41,13 @@ course project for Introduction of Golang on imooc.
 `(under project root directory) cd front-end`
 
 `go run start.go`
+
+## Todo List
+1. Crawl more website, with css selector or xpath (instead of regular expression).
+2. Handle with anti-crawl mechanism (qps limit, encrypted cookie), or follow robots agreement.
+3. Login mechanism.
+4. Put De-dup in a separate module (with Redis).
+5. Optimize ES search quality.
+6. A more handy front-end page.
+7. Use these data to play with AI.
+8. Use Docker + Kubernetes to package and deploy.
